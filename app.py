@@ -12,7 +12,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     .hero {
-        padding: 2rem 2rem 1.5rem 2rem;
+        padding: 2rem;
         border-radius: 18px;
         background: linear-gradient(135deg, #f8fafc, #eef2ff);
         border: 1px solid #e2e8f0;
@@ -35,40 +35,6 @@ st.markdown("""
         font-weight: 700;
         margin-top: 1.5rem;
         margin-bottom: 0.8rem;
-    }
-
-    .risk-card {
-        padding: 1.1rem;
-        border-radius: 14px;
-        border: 1px solid #fecaca;
-        background: #fff7f7;
-        margin-bottom: 0.8rem;
-    }
-
-    .risk-card h4 {
-        margin: 0 0 0.4rem 0;
-    }
-
-    .evidence {
-        font-size: 0.9rem;
-        color: #7f1d1d;
-        margin-bottom: 0.4rem;
-    }
-
-    .safe-card {
-        padding: 1.2rem;
-        border-radius: 14px;
-        border: 1px solid #bbf7d0;
-        background: #f0fdf4;
-        margin-top: 1rem;
-    }
-
-    .safe-card h4 {
-        margin-top: 0;
-    }
-
-    .step {
-        margin: 0.55rem 0;
     }
 
     .footer-note {
@@ -156,7 +122,10 @@ def analyze_message(text):
     ]
 
     for name, indicators, explanation, concern in checks:
-        found = [item for item in indicators if item in text_lower]
+        found = [
+            item for item in indicators
+            if item in text_lower
+        ]
 
         if found:
             categories.append({
@@ -178,7 +147,6 @@ st.markdown("""
     <p>Understand the red flags before you take the risk.</p>
 </div>
 """, unsafe_allow_html=True)
-
 
 st.markdown(
     "Paste a suspicious message, job offer, scholarship message, email, "
@@ -218,9 +186,11 @@ analyze_button = st.button(
 if analyze_button:
 
     if not message.strip():
+
         st.warning("Please paste a message before analyzing it.")
 
     else:
+
         results = analyze_message(message)
 
         st.markdown(
@@ -232,10 +202,52 @@ if analyze_button:
 
             count = len(results)
 
-            st.error(
-                f"⚠️ ScamShield identified **{count} potential warning area(s)**."
+            signal_count = sum(
+                len(result["indicators"])
+                for result in results
             )
 
+            st.error(
+                f"⚠️ ScamShield identified "
+                f"**{count} potential warning area(s)**."
+            )
+            st.info(
+    "⚠️ Multiple warning signs detected. "
+    "Verify the request carefully before clicking links, "
+    "sharing information, or making payments."
+)
+
+            # -----------------------------
+            # Risk Overview
+            # -----------------------------
+            st.markdown(
+                '<div class="section-title">📌 Risk Overview</div>',
+                unsafe_allow_html=True
+            )
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.metric(
+                    "Warning Areas",
+                    count
+                )
+
+            with col2:
+                st.metric(
+                    "Signals Detected",
+                    signal_count
+                )
+
+            with col3:
+                st.metric(
+                    "Recommended Action",
+                    "Verify First"
+                )
+
+            # -----------------------------
+            # Potential Warning Signs
+            # -----------------------------
             st.markdown(
                 '<div class="section-title">⚠️ Potential Warning Signs</div>',
                 unsafe_allow_html=True
@@ -243,70 +255,96 @@ if analyze_button:
 
             for result in results:
 
+                st.warning(
+                    f"⚠️ {result['name']}"
+                )
+
                 evidence = ", ".join(
-                    f"`{item}`" for item in result["indicators"]
+                    f"`{item}`"
+                    for item in result["indicators"]
                 )
 
                 st.markdown(
-                    f"""
-                    <div class="risk-card">
-                        <h4>⚠️ {result["name"]}</h4>
-                        <div class="evidence">
-                            Detected indicators: {evidence}
-                        </div>
-                        <div>
-                            {result["concern"]}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
+                    f"**Detected indicators:** {evidence}"
                 )
 
+                st.write(
+                    result["concern"]
+                )
+
+            # -----------------------------
+            # Why It May Be Concerning
+            # -----------------------------
             st.markdown(
                 '<div class="section-title">💡 Why These May Be Concerning</div>',
                 unsafe_allow_html=True
             )
 
             for result in results:
+
                 st.markdown(
-                    f"**{result['name']}** — {result['explanation']}"
+                    f"**{result['name']}** — "
+                    f"{result['explanation']}"
                 )
 
-            
+            # -----------------------------
+            # Safer Next Steps
+            # -----------------------------
+            st.markdown(
+                '<div class="section-title">🛡️ Safer Next Steps</div>',
+                unsafe_allow_html=True
+            )
+
+            st.success(
+                "✓ Do not send money until the request "
+                "has been independently verified."
+            )
+
+            st.success(
+                "✓ Do not share OTPs, passwords, PINs, "
+                "CVVs, or other sensitive information."
+            )
+
+            st.success(
+                "✓ Avoid clicking suspicious links."
+            )
+
+            st.success(
+                "✓ Verify the organization using its official "
+                "website or trusted contact details."
+            )
+
+            st.success(
+                "✓ If the message claims to be from a company, "
+                "contact that company through an independently "
+                "verified channel."
+            )
 
         else:
 
             st.success(
-                "✅ No common warning indicators were detected in this message."
+                "✅ No common warning indicators were detected "
+                "in this message."
             )
 
             st.info(
                 "This does not guarantee that the message is safe. "
-                "Always verify important requests through trusted official sources."
+                "Always verify important requests through trusted "
+                "official sources."
             )
 
 
 # -----------------------------
 # Disclaimer
 # -----------------------------
-st.markdown('<div class="section-title">🛡️ Safer Next Steps</div>', unsafe_allow_html=True)
-
-st.success(
-    "✓ Do not send money until the request has been independently verified."
-)
-
-st.success(
-    "✓ Do not share OTPs, passwords, PINs, CVVs, or other sensitive information."
-)
-
-st.success(
-    "✓ Avoid clicking suspicious links."
-)
-
-st.success(
-    "✓ Verify the organization using its official website or trusted contact details."
-)
-
-st.success(
-    "✓ If the message claims to be from a company, contact that company through an independently verified channel."
+st.markdown(
+    """
+    <div class="footer-note">
+        <strong>Important:</strong> ScamShield AI provides informational
+        guidance. It does not guarantee that a message is legitimate
+        or fraudulent. Always independently verify important requests
+        through trusted official sources.
+    </div>
+    """,
+    unsafe_allow_html=True
 )
